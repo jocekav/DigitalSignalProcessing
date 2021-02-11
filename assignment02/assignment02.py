@@ -5,6 +5,7 @@ import matplotlib
 from matplotlib import pyplot as plt
 from scipy.io.wavfile import read
 import time
+from tqdm import tqdm
 
 # if x is len 200 and h is len 100 then y will be len 299
 # len(y) = len(x) + len(h) - 1
@@ -44,7 +45,7 @@ def mySlowerTimeConv(x,h):
     h = np.concatenate((h, np.zeros(lenX))) 
     totSamples = lenX + lenH - 1
     y = np.zeros(totSamples)
-    for i in range(totSamples):
+    for i in tqdm(range(totSamples)):
         for j in range(lenX):
             if i - j + 1 >= 0:
                 y[i] = y[i] + (x[j] * h[i-j])
@@ -111,11 +112,11 @@ def main():
     x = loadSoundFile('piano.wav')
     h = loadSoundFile('impulse-response.wav')
     m, mabs, stdev, time = CompareConv(x,h)
-    # m1, mabs1, stdev1, time1 = CompareConvIneffecient(x,h)
+    m1, mabs1, stdev1, time1 = CompareConvIneffecient(x,h)
     results_file = open("02-results.txt","w") 
-    results_file.write('Results for my convolution: ')
+    results_file.write('Results for my efficient convolution: ')
     results_file.write(str(m) + ', ' + str(mabs) + ', ' + str(stdev) + ', ' + str(time) + '\n')
-    # results_file.write('Results for my inefficient convolution: ' + str(m1) + ', ' + str(mabs1) + ', ' + str(stdev1) + ', ' + str(time1))
+    results_file.write('Results for my inefficient convolution: ' + str(m1) + ', ' + str(mabs1) + ', ' + str(stdev1) + ', ' + str(time1))
     results_file.close()
 
 
