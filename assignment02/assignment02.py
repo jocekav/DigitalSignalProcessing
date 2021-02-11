@@ -109,8 +109,8 @@ def main():
     plt.ylabel('Response')
     plt.savefig('02-myConv.png')
     
-    x = loadSoundFile('piano.wav')
-    h = loadSoundFile('impulse-response.wav')
+    x = loadSoundFile('audio/piano.wav')
+    h = loadSoundFile('audio/impulse-response.wav')
     m, mabs, stdev, time = CompareConv(x,h)
     m1, mabs1, stdev1, time1 = CompareConvIneffecient(x,h)
     results_file = open("02-results.txt","w") 
