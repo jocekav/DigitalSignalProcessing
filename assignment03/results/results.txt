@@ -1,0 +1,15 @@
+3.4 What is the frequency resolution of the FFT obtained above?
+- sampling_rate/N = 44100/11025 = 4.0
+
+3.5 How will the frequency resolution change if you pad the input signal 
+with the zeroes length of the input signal?
+- sampling_rate/2N = 44100/22050 = 2.0
+
+4.3 Compare the differences in the two plots due to the different windows used
+- The rectangle introduces more spectral leakage than a hanning window.
+- There is a visible difference in the density 11000-17500 range with the 
+    rectanglular window being more dense than the hanning showing more leakage.
+    The hanning has more discretely dense points where as the rectanglular is more
+    spread out.
+
+
