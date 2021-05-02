@@ -1,11 +1,14 @@
+import synth_helpers
 import mido
 import string
 import numpy as np
 import scipy
 from scipy import interpolate
-#mid = mido.MidiFile('.mid', clip=True)
-mid = mido.MidiFile('Saw.mid', clip=True)
-mid.tracks
+from scipy import signal
+from IPython.display import Audio
+import scipy
+from scipy.io.wavfile import write
+
 
 def convert_clocks_per_click(clocks_per_click, user_tempo):
     sec_per_click = .6 / (user_tempo * clocks_per_click)
@@ -20,7 +23,7 @@ def convert_frequency(midi_val):
     frequency = (reference / 32) * (2 ** ((midi_val - 9) / 12))
     return frequency
 
-def parse_MIDI(midi_file, user_tempo):
+def parse_MIDI(midi_file, user_tempo=120):
     # ticks_per_quarter = <PPQ from the header>
     # µs_per_quarter = <Tempo in latest Set Tempo event>
     # µs_per_tick = µs_per_quarter / ticks_per_quarter
@@ -62,88 +65,96 @@ def parse_MIDI(midi_file, user_tempo):
                 # print(midi_info)
     return midi_info
 
+# def init():
+#     sample_rate = 48000
+#     t = np.arange(0,128/sample_rate,1/sample_rate)
+#     freq = 375
+#     sine_wavetable = np.sin(2 * np.pi * freq * t)
+#     saw_wavetable = scipy.signal.sawtooth(2 * np.pi * freq * t)
+#     square_wavetable = scipy.signal.square(2 * np.pi * freq * t)
+#     tri_wavetable = scipy.signal.sawtooth(2 * np.pi * freq * t, width=0.5)
 
 
-def adsr(x,a=.25,d=.25,s=.25,r=.25,fs=48000):
-    total_len = len(x)
-    a_len = int(.25 * len(x))
-    d_len = int(.25 * len(x))
-    r_len = int(.25 * len(x))
-    s_len = int(len(x) - a_len - d_len - r_len)
 
-    xa= np.arange(0, a_len)                                                     #sets up size of attack portion
-    ya= np.linspace(0,np.max(x),xa.size)                                       #creates attack envelope
+# def main():
+#     # init()
+#     note_list = parse_MIDI('Saw.mid', 8)
+#     play_list = np.array([])
+#     for i in note_list:
+#         note_sine = synth_helpers.genSine(i[0], i[2], i[1])
+#         #note_sine = wavetable(i[0], i[2], i[1])
+#         note_sine = synth_helpers.adsr(note_sine)
+#         play_list = np.concatenate((play_list, note_sine))
+#         # play_list = lfo(play_list, 2)
+#         # play_list = lowpass(play_list, cutoff=440)
+#         # play_list = flanger(play_list, .004, 0.11, 0.57)
+#         # play_list = wahwah(play_list)
+#     print(play_list)
 
-    xd= np.arange(a_len, a_len+d_len)                                                 #sets up size of decay portion
-    yd= np.linspace(np.max(x),.5,xd.size)                                        #creates attack envelope
+def main():
+    midi_input = input("Please input MIDI file path: ")
+    tempo_input = input("Please input tempo in BPM: ")
+    midi_info = parse_MIDI(midi_input, tempo_input)
+    gen_type = input("Additive Synthesis or Wavetable Sythesis. Type 'add' for Additive and 'wav' for Wavetable: ")
+    if (gen_type == 'add'):
+        wave_type = input("Choose wave type. Type 'sine', 'saw', 'square', or 'triangle'")
+        num_harmonics = input("Type the number of harmonics:")
+        try:
+            if wave_type == 'sine':
+                play_list = np.array([])
+                for i in midi_info:
+                    note_sine = synth_helpers.additive('sine', i[0], i[2], num_harmonics, i[1])
+                    play_list = np.concatenate((play_list, note_sine))
+            elif wave_type == 'saw':
+                play_list = np.array([])
+                for i in midi_info:
+                    note_sine = synth_helpers.additive('saw', i[0], i[2], num_harmonics, i[1])
+                    play_list = np.concatenate((play_list, note_sine))
+            elif wave_type == 'square':
+                play_list = np.array([])
+                for i in midi_info:
+                    note_sine = synth_helpers.additive('square', i[0], i[2], num_harmonics, i[1])
+                    play_list = np.concatenate((play_list, note_sine))
+            elif wave_type == 'triangle':
+                play_list = np.array([])
+                for i in midi_info:
+                    note_sine = synth_helpers.additive('triangle', i[0], i[2], num_harmonics, i[1])
+                    play_list = np.concatenate((play_list, note_sine))
+        except:
+            wave_type = input("Choose wave type. Type 'sine', 'saw', 'square', or 'triangle'")
+    else: 
+        wave_type = input("Choose wave type. Type 'sine', 'saw', 'square', or 'triangle'")
+        try:
+            if wave_type == 'sine':
+                play_list = np.array([])
+                for i in midi_info:
+                    note_sine = synth_helpers.wavetable(i[0], i[2], i[1], 'sine')
+                    play_list = np.concatenate((play_list, note_sine))
+            elif wave_type == 'saw':
+                play_list = np.array([])
+                for i in midi_info:
+                    note_sine = synth_helpers.wavetable(i[0], i[2], i[1], 'saw')
+                    play_list = np.concatenate((play_list, note_sine))
+            elif wave_type == 'square':
+                play_list = np.array([])
+                for i in midi_info:
+                    note_sine = synth_helpers.wavetable(i[0], i[2], i[1], 'saw')
+            elif wave_type == 'triangle':
+                play_list = np.array([])
+                for i in midi_info:
+                    note_sine = synth_helpers.wavetable(i[0], i[2], i[1], 'triangle')
+                    play_list = np.concatenate((play_list, note_sine))
+        except:
+            wave_type = input("Choose wave type. Type 'sine', 'saw', 'square', or 'triangle'")
+    user_complete = False
+    while not user_complete:
+        input("Choose an effect. Type 'adsr', 'saw', 'square', or 'triangle'")
 
-    xs= np.arange(a_len+d_len, a_len+d_len+s_len)                               #sets up size of sustain portion
-    ys= np.linspace(.5,.5,xs.size)                                            #creates sustain envelope
+        
 
-    xr= np.arange(a_len+d_len+s_len, a_len+d_len+s_len+r_len)               #sets up size of release portion
-    yr= np.linspace(.5,0,xr.size)
+main()
 
-    env=np.concatenate((ya,yd,ys,yr))                                          #creates full adsr envelope array
-    adsrnote=x*env[0:x.size]               
-                                               #applies adsr envelope to input array
-    return adsrnote
-
-def genSine(frequency, duration, amplitude = 1, sampleRate = 48000, phase = 0):
-    
-    #creates a sine wave
-    
-    import numpy as np
-    
-    time = np.arange(0, duration, 1/sampleRate)
-    return amplitude * np.sin((2*np.pi * frequency * time) + phase)
-
-
-def wavetable(frequency, dur, amp, fs=48000):
-    from matplotlib import pyplot as plt
-    # choose the wave type
-    t = np.arange(0,128/fs,1/fs)
-    wave = np.sin(2 * np.pi * 375 * np.arange(0,128/fs,1/fs))
-
-    interp = scipy.interpolate.CubicSpline(np.arange(0, len(wave)), wave,bc_type='natural')
-
-    # plt.plot(t, wave)
-    wave = wave / max(wave)
-    # frequency to step size
-    step = (round(frequency) * 128) / fs
-    # time to desired sample length (array length)
-    length = dur * fs
-    ind_arr = np.arange(0, step * length, step)
-    # ind_arr = np.linspace(0, step * length, length)
-    out = np.array([])
-    #read table
-    for i in ind_arr:
-        i = i % 128
-        if i != int(i):
-            # floored = int(i)
-            # next = floored + 1
-            # decimal = i - floored
-            # out = np.append(out, wave[floored] + decimal * (wave[next] - wave[floored]))
-            out = np.append(out, interp(i))
-        elif i == int(i):
-            out = np.append(out, wave[int(i)])
-    out = out * amp
-    return out
-
-
-note_list = parse_MIDI('Saw.mid', 8)
-play_list = np.array([])
-for i in note_list:
-    note_sine = genSine(i[0], i[2], i[1])
-    #note_sine = wavetable(i[0], i[2], i[1])
-    note_sine = adsr(note_sine)
-    play_list = np.concatenate((play_list, note_sine))
-    # play_list = lfo(play_list, 2)
-    # play_list = lowpass(play_list, cutoff=440)
-    # play_list = flanger(play_list, .004, 0.11, 0.57)
-    # play_list = wahwah(play_list)
-print(play_list)
-
-from IPython.display import Audio
-import scipy
-from scipy.io.wavfile import write
-write("test.wav", 48000, play_list)
+# from IPython.display import Audio
+# import scipy
+# from scipy.io.wavfile import write
+# write("test.wav", 48000, play_list)
