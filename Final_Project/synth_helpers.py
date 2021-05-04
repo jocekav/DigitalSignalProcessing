@@ -5,6 +5,17 @@ import scipy
 from scipy import interpolate
 from scipy.io.wavfile import read
 
+import synth_helpers
+import mido
+import string
+import numpy as np
+import scipy
+from scipy import interpolate
+from scipy import signal
+from IPython.display import Audio
+import scipy
+from scipy.io.wavfile import write
+
 SAMPLE_RATE = 48000
 t = np.arange(0,128/SAMPLE_RATE,1/SAMPLE_RATE)
 freq = 375
@@ -13,7 +24,7 @@ SAW_WAVETABLE = scipy.signal.sawtooth(2 * np.pi * freq * t)
 SQUARE_WAVETABLE = scipy.signal.square(2 * np.pi * freq * t)
 TRI_WAVETABLE = scipy.signal.sawtooth(2 * np.pi * freq * t, width=0.5)
 
-def adsr(x,a=.25,d=.25,s=.25,r=.25,fs=48000):
+def adsr(x,a=.25,d=.25,s=.5,r=.25,fs=48000):
     total_len = len(x)
     a_len = int(.25 * len(x))
     d_len = int(.25 * len(x))
@@ -24,13 +35,13 @@ def adsr(x,a=.25,d=.25,s=.25,r=.25,fs=48000):
     ya= np.linspace(0,np.max(x),xa.size)                                       #creates attack envelope
 
     xd= np.arange(a_len, a_len+d_len)                                                 #sets up size of decay portion
-    yd= np.linspace(np.max(x),.5,xd.size)                                        #creates attack envelope
+    yd= np.linspace(np.max(x),s,xd.size)                                        #creates attack envelope
 
     xs= np.arange(a_len+d_len, a_len+d_len+s_len)                               #sets up size of sustain portion
-    ys= np.linspace(.5,.5,xs.size)                                            #creates sustain envelope
+    ys= np.linspace(s,s,xs.size)                                            #creates sustain envelope
 
     xr= np.arange(a_len+d_len+s_len, a_len+d_len+s_len+r_len)               #sets up size of release portion
-    yr= np.linspace(.5,0,xr.size)
+    yr= np.linspace(s,0,xr.size)
 
     env=np.concatenate((ya,yd,ys,yr))                                          #creates full adsr envelope array
     adsrnote=x*env[0:x.size]               
@@ -183,41 +194,56 @@ def lfo(x, freq, amplitude=1, fs=48000):
     lfo = x * amplitude * np.cos(2*np.pi*freq*t)
     return lfo
 
-def reverb(x, impulse):
+def reverb(x, impulse_in):
+    print(impulse_in)
+    fs, impulse = read(impulse_in)
+    impulse = np.transpose(impulse)[0]
 
-    # fs, impulse = read('St Nicolaes Church.wav')
-    # impulse = np.transpose(impulse)[0]
-
-    # impulse = np.concatenate((impulse, np.zeros(len(play_list)-len(impulse))))
-    # impulse = impulse / np.max(impulse)
-    # play_list = np.real(reverb(play_list, impulse))
+    impulse = np.concatenate((impulse, np.zeros(len(x)-len(impulse))))
+    impulse = impulse / np.max(impulse)
+    # x = np.real(impulse)
 
     fft_sig = scipy.fft.fft(x)
     fft_impulse = scipy.fft.fft(impulse)
     conv = fft_impulse * fft_sig
-    return scipy.fft.ifft(conv)
+    out = np.real(scipy.fft.ifft(conv))
+    return out / np.max(out)
 
-def lowpass(x, cutoff=440, order=10, fs=48000):
-    nyq = 0.5 * fs
-    normal_cutoff = cutoff / nyq
+def lowpass(x, cutoff=440, filter_block='default', fs=48000):
+    if filter_block == 'default':
+        filter_block = int (fs / cutoff) 
+        if filter_block % 2 == 0:
+            filter_block += 1
 
-    from scipy.signal import butter, filtfilt
+    cutoff = cutoff / fs  # Cutoff frequency as a fraction of the sampling rate.
 
-    (b,a) = butter(order, normal_cutoff, btype = 'low', analog = False)
-    filt_sig = filtfilt(b,a,x)
-    
-    return filt_sig
+    coeffs = np.sinc(2 * cutoff * (np.arange(filter_block) - (filter_block - 1) / 2))
 
-def highpass(x, cutoff=440, order=10, fs=48000):
-    nyq = 0.5 * fs
-    normal_cutoff = cutoff / nyq
+    coeffs *= np.hamming(filter_block)
 
-    from scipy.signal import butter, filtfilt
+    coeffs /= np.sum(coeffs)
 
-    (b,a) = butter(order, normal_cutoff, btype = 'high', analog = False)
-    filt_sig = filtfilt(b,a,x)
-    
-    return filt_sig
+    return np.convolve(x, coeffs)
+
+
+def highpass(x, cutoff=440, filter_block='default', fs=48000):
+    if filter_block == 'default':
+        filter_block = int (fs / cutoff) 
+        if filter_block % 2 == 0:
+            filter_block += 1
+
+    cutoff = cutoff / fs  # Cutoff frequency as a fraction of the sampling rate.
+
+    coeffs = np.sinc(2 * cutoff * (np.arange(filter_block) - (filter_block - 1) / 2))
+
+    coeffs *= np.hamming(filter_block)
+
+    coeffs /= np.sum(coeffs)
+
+    coeffs = -coeffs
+    coeffs[(filter_block - 1) // 2] += 1
+
+    return np.convolve(x, coeffs)
 
 def flanger(x, delay_time=0.003, rate=.1, feedback_percent=.5, fs=48000):
     import math
@@ -232,5 +258,32 @@ def flanger(x, delay_time=0.003, rate=.1, feedback_percent=.5, fs=48000):
         x_zero[i] = (feedback_percent * x[i]) + (feedback_percent * x[i-cur_delay])
     return x_zero
 
+# def downSample(x, new_rate):
+#     interp = scipy.interpolate.CubicSpline(np.arange(0, len(x)), x,bc_type='natural')
+#     curr_rate = 48000
+#     sample_steps = curr_rate / new_rate
+#     ind_arr = np.arange(0, len(x), sample_steps)
+#     out = np.arr
+#     out = np.array([])
+#     #read table
+#     for i in ind_arr:
+#         if i != int(i):
+#             out = np.append(out, interp(i))
+#         elif i == int(i):
+#             out = np.append(out, x[int(i)])
+#     return out
 
+def downSample(x, new_rate):
+    interp = scipy.interpolate.CubicSpline(np.arange(0, len(x)), x,bc_type='natural')
+    curr_rate = 48000
+    sample_steps = curr_rate / new_rate
+    ind_arr = np.arange(0, len(x), sample_steps)
+    out = np.zeros(len(ind_arr))
+    #read table
+    for ind, i in enumerate(ind_arr):
+        if i != int(i):
+            out[ind] = interp(i)
+        elif i == int(i):
+            out[ind] = x[int(i)]
+    return out
 
