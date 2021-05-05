@@ -40,6 +40,7 @@ Audio Output
 
 
 Command Line Examples:
+
 MIDI info prompts: 
 - 'saltarello2.mid' with tempo of 600
 - 'Saw.mid' with a tempo of 140
