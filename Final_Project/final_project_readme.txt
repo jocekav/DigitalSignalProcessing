@@ -21,7 +21,7 @@ Convolution
 Modulated Effects
 - ADSR 
 - Amplitude LFO (control rate)
-- Flanger (feedback effect) (control delay, depth, feedback%)
+- Flanger (feedback effect) (control delay, rate, feedback%)
 - Ring Modulation (control rate)
 Filters
 - Highpass
@@ -33,3 +33,43 @@ Musical Data
     ** Note, only input monophonic MIDI files. You can use the MIDI files in our repo, specifically 'saltarello2.mid' with a tempo of 600 yields good results. **
 Audio Output
 - File output
+
+
+Command Line Examples:
+MIDI info prompts: 
+    - 'saltarello2.mid' with tempo of 600
+    - 'Saw.mid' with a tempo of 140
+    - 'scale.mid' with a tempo of 4000
+Generation prompts:
+    - type 'add' for additive synthesis
+        - choose any type of oscillator by typing 'sine' for sine, 'saw' for saw, 'square' for square, and 'triangle' for triangle
+        - choose any range of harmonics to be added as an int, eg. 1, 2, 3, 7, 10
+            - the more harmonics the slower it runs
+    - ADSR
+        - type a decimal between 0-1 for the percentage of the attack, decay, release and type the sustain amplitude level
+            - .25 for attack, .25 for decay, .8 for sustain, .25 for release
+    - Note the generation may take a second, especially if you use wavetable
+Effects:
+    - type 'effect' to add effects
+    - add ring modulation by typing 'ring' with parameters rate and blend
+        - type .5 for rate and .75 for blend
+    - add an LFO by typing 'lfo' with parameters rate and blend
+        - type 20 for rate and .75 for blend
+    - add a flanger by typing 'flanger' with parameters delay time, rate, feedback %, and blend
+        - type 0.003 for delay time, 0.1 for rate, .5 for feedback, and .5 for blend
+    - add high pass by typing 'high' with parameters cutoff frequency, filter length, and blend
+        - type 1500 for cutoff, 'default' for filter length, and .8 for blend
+    - add low pass by typing 'low' with parameters cutoff frequency, filter length, and blend
+        - type 200 for cutoff, 'default' for filter length, and .8 for blend
+    - add reverb by typing 'reverb' with parameters preset and blend
+        - type 'room' for preset and blend .6
+        - type 'church' for preset and blend .6
+Output:
+    - type 'generate' to stop adding effects
+    - type a name for your wav file (we usually use 'test') (you don't need to put .wav)
+    - type the output sampling rate
+        - type 48000 or type 24000
+    - type the output bit depth
+        - type 32 or type 16 or type 8
+    - file will write to the directory of the python file folder
+

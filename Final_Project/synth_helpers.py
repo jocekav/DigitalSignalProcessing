@@ -18,24 +18,36 @@ SAW_WAVETABLE = scipy.signal.sawtooth(2 * np.pi * freq * t)
 SQUARE_WAVETABLE = scipy.signal.square(2 * np.pi * freq * t)
 TRI_WAVETABLE = scipy.signal.sawtooth(2 * np.pi * freq * t, width=0.5)
 
+def init():
+    SAMPLE_RATE = 48000
+    t = np.arange(0,128/SAMPLE_RATE,1/SAMPLE_RATE)
+    freq = 375
+    SINE_WAVETABLE = np.sin(2 * np.pi * freq * t)
+    SAW_WAVETABLE = scipy.signal.sawtooth(2 * np.pi * freq * t)
+    SQUARE_WAVETABLE = scipy.signal.square(2 * np.pi * freq * t)
+    TRI_WAVETABLE = scipy.signal.sawtooth(2 * np.pi * freq * t, width=0.5)
+
 def adsr(x,a=.25,d=.25,s=.5,r=.25,fs=48000):
     total_len = len(x)
-    a_len = int(.25 * len(x))
-    d_len = int(.25 * len(x))
-    r_len = int(.25 * len(x))
+    a_len = int(a * len(x))
+    d_len = int(d * len(x))
+    r_len = int(r * len(x))
     s_len = int(len(x) - a_len - d_len - r_len)
 
-    xa= np.arange(0, a_len)                                                     #sets up size of attack portion
-    ya= np.linspace(0,np.max(x),xa.size)                                       #creates attack envelope
+    if a_len != 0:
+        xa= np.arange(0, a_len)                                                     #sets up size of attack portion
+        ya= np.linspace(0,np.max(x),xa.size)                                       #creates attack envelope
 
-    xd= np.arange(a_len, a_len+d_len)                                                 #sets up size of decay portion
-    yd= np.linspace(np.max(x),s,xd.size)                                        #creates attack envelope
+    if d_len != 0:
+        xd= np.arange(a_len, a_len+d_len)                                                 #sets up size of decay portion
+        yd= np.linspace(np.max(x),s,xd.size)                                        #creates attack envelope
 
     xs= np.arange(a_len+d_len, a_len+d_len+s_len)                               #sets up size of sustain portion
     ys= np.linspace(s,s,xs.size)                                            #creates sustain envelope
 
-    xr= np.arange(a_len+d_len+s_len, a_len+d_len+s_len+r_len)               #sets up size of release portion
-    yr= np.linspace(s,0,xr.size)
+    if r_len != 0:
+        xr= np.arange(a_len+d_len+s_len, a_len+d_len+s_len+r_len)               #sets up size of release portion
+        yr= np.linspace(s,0,xr.size)
 
     env=np.concatenate((ya,yd,ys,yr))                                          #creates full adsr envelope array
     adsrnote=x*env[0:x.size]               
@@ -119,7 +131,8 @@ def additive(type, freq, duration, num_harmonics, amplitude=1, fs=48000, phase_s
             add = genSaw((freq * i), duration, phase=(phase_shift*i))
             summed_wave = summed_wave + add
     summed_wave *= amplitude
-    summed_wave = summed_wave / np.max(summed_wave)
+    if np.max(summed_wave) != 0:
+        summed_wave = summed_wave / np.max(summed_wave)
     return summed_wave
     
 
@@ -159,6 +172,7 @@ def wavetable(frequency, dur, amp, type='sine', fs=48000):
     out = out * amp
     return out
 
+
 def ring_modulation(x, rate=0.5, blend=0.5, block_size=512):
     remainder = len(x) % block_size
     pad = np.zeros(remainder)
@@ -177,12 +191,11 @@ def ring_modulation(x, rate=0.5, blend=0.5, block_size=512):
 def lfo(x, freq, blend, amplitude=1, fs=48000):
     t = np.arange(0,len(x)/fs,1/fs)
     lfo = x * amplitude * np.cos(2*np.pi*freq*t)
-    out = ((1 - blend) * x) + (blend * out)
+    out = ((1 - blend) * x) + (blend * lfo)
     return out
 
 
 def reverb(x, impulse_in, blend):
-    print(impulse_in)
     fs, impulse = read(impulse_in)
     impulse = np.transpose(impulse)[0]
 

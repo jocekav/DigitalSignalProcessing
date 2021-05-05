@@ -81,7 +81,7 @@ def main():
         wave_type = input("Choose wave type. Type 'sine', 'saw', 'square', or 'triangle': ")
         num_harmonics = input("Type the number of harmonics: ")
         num_harmonics = int(num_harmonics)
-        print('\n Define the ADSR envelope parameters as percentages (0-1) of each note')
+        print('\nDefine the ADSR envelope parameters as percentages (0-1) of each note')
         attack = input('Type attack percentage (0-1): ')
         attack = float(attack)
         decay = input('Type decay percentage (0-1): ')
@@ -123,6 +123,7 @@ def main():
             else:
                 wave_type = input("Choose wave type. Type 'sine', 'saw', 'square', or 'triangle': ")
     else: 
+        synth_helpers.init()
         wave_type = input("Choose wave type. Type 'sine', 'saw', 'square', or 'triangle': ")
         print('\nDefine the ADSR envelope parameters as percentages (0-1) of each note')
         attack = input('Type attack percentage (0-1): ')
@@ -167,7 +168,7 @@ def main():
         if add_effect == 'generate':
             user_complete = True
             file_name = input("Type a name for the generated .wav file: ")
-            sample_rate = input("Type the output sampling rate (default 48000): ")
+            sample_rate = input("Type the output sampling rate (highest 48000): ")
             downsampled = synth_helpers.downSample(play_list, int(sample_rate))
             bit_depth = input("Type the bit depth (32 bit and below): ")
             quantized = synth_helpers.quantize_dither(downsampled, int(bit_depth))
@@ -175,28 +176,28 @@ def main():
         else:
             effect = input("Type 'ring' to add a ring modulation, type 'lfo' to add a low frequency oscillator, type 'reverb' to add reverb, type, type 'low' to add a lowpass filter, type 'high' to add a highpass filter, or type 'flanger' to add a flanger: ")
             if effect == 'ring':
-                rate = input("\nType the rate of the modulator (default 0.5): ")
-                blend = input("Type the blend amount from 0-1 (default 0.5): ")
+                rate = input("Type the rate of the modulator (try 0.5): ")
+                blend = input("Type the blend amount from 0-1 (try 0.5): ")
                 play_list = synth_helpers.ring_modulation(play_list, rate=float(rate), blend=float(blend), block_size=512)
             elif effect == 'lfo':
-                rate = input("Type the frequency of the oscillator: ")
-                blend = input("Type the blend amount from 0-1 (default 0.5): ")
+                rate = input("Type the frequency of the oscillator (try 20): ")
+                blend = input("Type the blend amount from 0-1 (try 0.5): ")
                 play_list = synth_helpers.lfo(play_list, float(rate), float(blend))
             elif effect == 'reverb':
                 preset = input("Choose a reverb preset: 'church', 'room', 'opera', or upload your own impulse response with the complete file path: ")
-                blend = input("Type the blend amount from 0-1 (default 0.5): ")
+                blend = input("Type the blend amount from 0-1 (try 0.5): ")
                 if preset == 'opera':
-                    play_list = synth_helpers.reverb(play_list, "OperaHall.wav")
+                    play_list = synth_helpers.reverb(play_list, "OperaHall.wav", float(blend))
                 elif preset == 'church':
-                    play_list = synth_helpers.reverb(play_list, "StNicolaesChurch.wav")
+                    play_list = synth_helpers.reverb(play_list, "StNicolaesChurch.wav", float(blend))
                 elif preset == 'room':
-                    play_list = synth_helpers.reverb(play_list, "SmallDrumRoom.wav")
+                    play_list = synth_helpers.reverb(play_list, "SmallDrumRoom.wav", float(blend))
                 else:
-                    play_list = synth_helpers.reverb(play_list, preset, blend)
+                    play_list = synth_helpers.reverb(play_list, preset, float(blend))
             elif effect == 'low':
                 cutoff = input("Type the cutoff frequency: ")
                 filter_length = input("Type the filter length or type 'default' to use sampling rate / cutoff")
-                blend = input("Type the blend amount from 0-1 (default 0.5): ")
+                blend = input("Type the blend amount from 0-1 (try 0.5): ")
                 play_list = synth_helpers.lowpass(play_list, float(cutoff), float(blend), filter_length)
             elif effect == 'high':
                 cutoff = input("Type the cutoff frequency: ")
@@ -204,12 +205,15 @@ def main():
                 blend = input("Type the blend amount from 0-1 (default 0.5): ")
                 play_list = synth_helpers.highpass(play_list, float(cutoff), float(blend), filter_length)
             elif effect == 'flanger':
-                delay_time = input('Type the delay time in seconds (default = 0.003): ')
-                rate = input('Type the rate (default .1): ')
-                feedback_percent = input('Type the amount of feedback between 0-1 (default 0.5): ')
-                blend = input("Type the blend amount from 0-1 (default 0.5): ")
+                delay_time = input('Type the delay time in seconds (try 0.003): ')
+                rate = input('Type the rate (try 0.1): ')
+                feedback_percent = input('Type the amount of feedback between 0-1 (try 0.5): ')
+                blend = input("Type the blend amount from 0-1 (try 0.5): ")
                 play_list = synth_helpers.flanger(play_list, float(delay_time), float(rate), float(feedback_percent), float(blend))
 
         
 
 main()
+
+# note = synth_helpers.wavetable(440, 1, 1)
+# write(('test.wav'), 48000, note)
