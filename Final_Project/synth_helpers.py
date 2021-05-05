@@ -202,8 +202,11 @@ def reverb(x, impulse_in, blend):
 def lowpass(x, cutoff, blend, filter_block='default', fs=48000):
     if filter_block == 'default':
         filter_block = int (fs / cutoff) 
-        if filter_block % 2 == 0:
-            filter_block += 1
+    else:
+        filter_block = int(filter_block)
+
+    if filter_block % 2 == 0:
+        filter_block += 1
 
     cutoff = cutoff / fs  # Cutoff frequency as a fraction of the sampling rate.
 
@@ -220,8 +223,11 @@ def lowpass(x, cutoff, blend, filter_block='default', fs=48000):
 def highpass(x, cutoff, blend, filter_block='default', fs=48000):
     if filter_block == 'default':
         filter_block = int (fs / cutoff) 
-        if filter_block % 2 == 0:
-            filter_block += 1
+    else:
+        filter_block = int(filter_block)
+        
+    if filter_block % 2 == 0:
+        filter_block += 1
 
     cutoff = cutoff / fs  # Cutoff frequency as a fraction of the sampling rate.
 

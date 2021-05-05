@@ -195,12 +195,14 @@ def main():
                     play_list = synth_helpers.reverb(play_list, preset, blend)
             elif effect == 'low':
                 cutoff = input("Type the cutoff frequency: ")
+                filter_length = input("Type the filter length or type 'default' to use sampling rate / cutoff")
                 blend = input("Type the blend amount from 0-1 (default 0.5): ")
-                play_list = synth_helpers.lowpass(play_list, float(cutoff), float(blend))
+                play_list = synth_helpers.lowpass(play_list, float(cutoff), float(blend), filter_length)
             elif effect == 'high':
                 cutoff = input("Type the cutoff frequency: ")
+                filter_length = input("Type the filter length or type 'default' to use sampling rate / cutoff")
                 blend = input("Type the blend amount from 0-1 (default 0.5): ")
-                play_list = synth_helpers.highpass(play_list, float(cutoff), float(blend))
+                play_list = synth_helpers.highpass(play_list, float(cutoff), float(blend), filter_length)
             elif effect == 'flanger':
                 delay_time = input('Type the delay time in seconds (default = 0.003): ')
                 rate = input('Type the rate (default .1): ')
