@@ -24,11 +24,6 @@ def convert_frequency(midi_val):
     return frequency
 
 def parse_MIDI(midi_file, user_tempo):
-    # ticks_per_quarter = <PPQ from the header>
-    # µs_per_quarter = <Tempo in latest Set Tempo event>
-    # µs_per_tick = µs_per_quarter / ticks_per_quarter
-    # seconds_per_tick = µs_per_tick / 1.000.000
-    # seconds = ticks * seconds_per_tick
     clocks_per_click = 0
     midi_info = []
     note_value = 0
@@ -116,19 +111,19 @@ def main():
     tempo_input = input("Please input tempo in BPM: ")
     midi_info = parse_MIDI(midi_input, int(tempo_input))
     gen_type = input("Additive Synthesis or Wavetable Sythesis. Type 'add' for Additive and 'wav' for Wavetable: ")
-    print('\n Define the ADSR envelope parameters as percentages (0-1) of each note')
-    attack = input('Type attack percentage (0-1): ')
-    attack = float(attack)
-    decay = input('Type decay percentage (0-1): ')
-    decay = float(decay)
-    sustain = input('Type sustained amplitude (0-1): ')
-    sustain = float(sustain)
-    release = input('Type release percentage (0-1): ')
-    release = float(release)
     if (gen_type == 'add'):
         wave_type = input("Choose wave type. Type 'sine', 'saw', 'square', or 'triangle': ")
         num_harmonics = input("Type the number of harmonics: ")
         num_harmonics = int(num_harmonics)
+        print('\n Define the ADSR envelope parameters as percentages (0-1) of each note')
+        attack = input('Type attack percentage (0-1): ')
+        attack = float(attack)
+        decay = input('Type decay percentage (0-1): ')
+        decay = float(decay)
+        sustain = input('Type sustained amplitude (0-1): ')
+        sustain = float(sustain)
+        release = input('Type release percentage (0-1): ')
+        release = float(release)
         wave_valid = False
         while (not wave_valid):
             if wave_type == 'sine':
@@ -163,6 +158,15 @@ def main():
                 wave_type = input("Choose wave type. Type 'sine', 'saw', 'square', or 'triangle': ")
     else: 
         wave_type = input("Choose wave type. Type 'sine', 'saw', 'square', or 'triangle': ")
+        print('\nDefine the ADSR envelope parameters as percentages (0-1) of each note')
+        attack = input('Type attack percentage (0-1): ')
+        attack = float(attack)
+        decay = input('Type decay percentage (0-1): ')
+        decay = float(decay)
+        sustain = input('Type sustained amplitude (0-1): ')
+        sustain = float(sustain)
+        release = input('Type release percentage (0-1): ')
+        release = float(release)
         wave_valid = False
         while not wave_valid:
             if wave_type == 'sine':
@@ -199,18 +203,22 @@ def main():
             file_name = input("Type a name for the generated .wav file: ")
             sample_rate = input("Type the output sampling rate (default 48000): ")
             downsampled = synth_helpers.downSample(play_list, int(sample_rate))
-            write((file_name + '.wav'), int(sample_rate), downsampled)
+            bit_depth = input("Type the bit depth (32 bit and below): ")
+            quantized = synth_helpers.quantize_dither(downsampled, int(bit_depth))
+            write((file_name + '.wav'), int(sample_rate), quantized)
         else:
             effect = input("Type 'ring' to add a ring modulation, type 'lfo' to add a low frequency oscillator, type 'reverb' to add reverb, type, type 'low' to add a lowpass filter, type 'high' to add a highpass filter, or type 'flanger' to add a flanger: ")
             if effect == 'ring':
-                rate = input("Type the rate of the modulator (default 0.5): ")
+                rate = input("\nType the rate of the modulator (default 0.5): ")
                 blend = input("Type the blend amount from 0-1 (default 0.5): ")
                 play_list = synth_helpers.ring_modulation(play_list, rate=float(rate), blend=float(blend), block_size=512)
             elif effect == 'lfo':
                 rate = input("Type the frequency of the oscillator: ")
-                play_list = synth_helpers.lfo(play_list, float(rate))
+                blend = input("Type the blend amount from 0-1 (default 0.5): ")
+                play_list = synth_helpers.lfo(play_list, float(rate), float(blend))
             elif effect == 'reverb':
                 preset = input("Choose a reverb preset: 'church', 'room', 'opera', or upload your own impulse response with the complete file path: ")
+                blend = input("Type the blend amount from 0-1 (default 0.5): ")
                 if preset == 'opera':
                     play_list = synth_helpers.reverb(play_list, "OperaHall.wav")
                 elif preset == 'church':
@@ -218,51 +226,22 @@ def main():
                 elif preset == 'room':
                     play_list = synth_helpers.reverb(play_list, "SmallDrumRoom.wav")
                 else:
-                    play_list = synth_helpers.reverb(play_list, preset)
+                    play_list = synth_helpers.reverb(play_list, preset, blend)
             elif effect == 'low':
                 cutoff = input("Type the cutoff frequency: ")
-                play_list = synth_helpers.lowpass(play_list, float(cutoff))
+                blend = input("Type the blend amount from 0-1 (default 0.5): ")
+                play_list = synth_helpers.lowpass(play_list, float(cutoff), float(blend))
             elif effect == 'high':
                 cutoff = input("Type the cutoff frequency: ")
-                play_list = synth_helpers.highpass(play_list, float(cutoff))
+                blend = input("Type the blend amount from 0-1 (default 0.5): ")
+                play_list = synth_helpers.highpass(play_list, float(cutoff), float(blend))
             elif effect == 'flanger':
                 delay_time = input('Type the delay time in seconds (default = 0.003): ')
                 rate = input('Type the rate (default .1): ')
                 feedback_percent = input('Type the amount of feedback between 0-1 (default 0.5): ')
-                play_list = synth_helpers.flanger(play_list, float(delay_time), float(rate), float(feedback_percent))
+                blend = input("Type the blend amount from 0-1 (default 0.5): ")
+                play_list = synth_helpers.flanger(play_list, float(delay_time), float(rate), float(feedback_percent), float(blend))
 
         
 
-# main()
-
-# from IPython.display import Audio
-# import scipy
-# from scipy.io.wavfile import write
-# write("test.wav", 48000, play_list)
-
-
-note_list = parse_MIDI('saltarello2.mid', 500)
-note_list = note_list[: int(len(note_list)/10)]
-play_list = np.array([])
-for i in note_list:
-    note_sine = synth_helpers.genSine(i[0], i[2], i[1])
-    #note_sine = wavetable(i[0], i[2], i[1])
-    note_sine = synth_helpers.adsr(note_sine)
-    play_list = np.concatenate((play_list, note_sine))
-# play_list = synth_helpers.reverb(play_list, "OperaHall.wav")
-#     # play_list = lfo(play_list, 2)
-# play_list = synth_helpers.highpass(play_list, cutoff=5000)
-#     # play_list = flanger(play_list, .004, 0.11, 0.57)
-#     # play_list = wahwah(play_list)
-
-# # downsampled = synth_helpers.downSample(play_list, 23000)
-
-from IPython.display import Audio
-import scipy
-from scipy.io.wavfile import write
-write("test.wav", 48000, play_list)
-
-
-# write("test1.wav", 23000, downsampled)
-# print(len(play_list))
-# print(len(downsampled))
+main()

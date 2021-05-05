@@ -1,11 +1,4 @@
-import mido
-import string
-import numpy as np
-import scipy
-from scipy import interpolate
-from scipy.io.wavfile import read
 
-import synth_helpers
 import mido
 import string
 import numpy as np
@@ -13,8 +6,9 @@ import scipy
 from scipy import interpolate
 from scipy import signal
 from IPython.display import Audio
-import scipy
+from scipy.io.wavfile import read
 from scipy.io.wavfile import write
+import random
 
 SAMPLE_RATE = 48000
 t = np.arange(0,128/SAMPLE_RATE,1/SAMPLE_RATE)
@@ -129,10 +123,8 @@ def additive(type, freq, duration, num_harmonics, amplitude=1, fs=48000, phase_s
     return summed_wave
     
 
-def wavetable(frequency, dur, amp, fs=48000, type='sine'):
-    from matplotlib import pyplot as plt
+def wavetable(frequency, dur, amp, type='sine', fs=48000):
     # choose the wave type
-    t = np.arange(0,128/fs,1/fs)
     try:
         if (type == 'sine'):
             wave = SINE_WAVETABLE
@@ -172,13 +164,9 @@ def wavetable(frequency, dur, amp, fs=48000, type='sine'):
 
 def ring_modulation(x, rate=0.5, blend=0.5, block_size=512):
     remainder = len(x) % block_size
-    print(len(x))
-    print(remainder)
     pad = np.zeros(remainder)
     print(len(pad))
     x = np.concatenate((x, pad))
-    print(len(x))
-    print(len(x) / block_size)
     total_blocks = len(x) / block_size
     for j in range(int(total_blocks)):
         t = 0
@@ -189,12 +177,14 @@ def ring_modulation(x, rate=0.5, blend=0.5, block_size=512):
     x = x[0:(len(x)-remainder)]
     return x
 
-def lfo(x, freq, amplitude=1, fs=48000):
+def lfo(x, freq, blend, amplitude=1, fs=48000):
     t = np.arange(0,len(x)/fs,1/fs)
     lfo = x * amplitude * np.cos(2*np.pi*freq*t)
-    return lfo
+    out = ((1 - blend) * x) + (blend * out)
+    return out
 
-def reverb(x, impulse_in):
+
+def reverb(x, impulse_in, blend):
     print(impulse_in)
     fs, impulse = read(impulse_in)
     impulse = np.transpose(impulse)[0]
@@ -206,10 +196,13 @@ def reverb(x, impulse_in):
     fft_sig = scipy.fft.fft(x)
     fft_impulse = scipy.fft.fft(impulse)
     conv = fft_impulse * fft_sig
-    out = np.real(scipy.fft.ifft(conv))
-    return out / np.max(out)
 
-def lowpass(x, cutoff=440, filter_block='default', fs=48000):
+    out = np.real(scipy.fft.ifft(conv))
+    out = out / np.max(out)
+    out = ((1 - blend) * x) + (blend * out)
+    return out
+
+def lowpass(x, cutoff, blend, filter_block='default', fs=48000):
     if filter_block == 'default':
         filter_block = int (fs / cutoff) 
         if filter_block % 2 == 0:
@@ -222,11 +215,12 @@ def lowpass(x, cutoff=440, filter_block='default', fs=48000):
     coeffs *= np.hamming(filter_block)
 
     coeffs /= np.sum(coeffs)
+    out = np.convolve(x, coeffs)
+    out = ((1 - blend) * x) + (blend * out)
+    return out
 
-    return np.convolve(x, coeffs)
 
-
-def highpass(x, cutoff=440, filter_block='default', fs=48000):
+def highpass(x, cutoff, blend, filter_block='default', fs=48000):
     if filter_block == 'default':
         filter_block = int (fs / cutoff) 
         if filter_block % 2 == 0:
@@ -243,9 +237,11 @@ def highpass(x, cutoff=440, filter_block='default', fs=48000):
     coeffs = -coeffs
     coeffs[(filter_block - 1) // 2] += 1
 
-    return np.convolve(x, coeffs)
+    out = np.convolve(x, coeffs)
+    out = ((1 - blend) * x) + (blend * out)
+    return out
 
-def flanger(x, delay_time=0.003, rate=.1, feedback_percent=.5, fs=48000):
+def flanger(x, delay_time, rate, feedback_percent, blend, fs=48000):
     import math
     ind = np.arange(0, len(x))
     sine_osc = np.sin(2 * np.pi * ind * (rate/fs))
@@ -256,7 +252,8 @@ def flanger(x, delay_time=0.003, rate=.1, feedback_percent=.5, fs=48000):
         abs_sin = abs(sine_osc[i])
         cur_delay = math.ceil(abs_sin*delay_samples)
         x_zero[i] = (feedback_percent * x[i]) + (feedback_percent * x[i-cur_delay])
-    return x_zero
+    out = ((1 - blend) * x) + (blend * x_zero)
+    return out
 
 # def downSample(x, new_rate):
 #     interp = scipy.interpolate.CubicSpline(np.arange(0, len(x)), x,bc_type='natural')
@@ -274,6 +271,8 @@ def flanger(x, delay_time=0.003, rate=.1, feedback_percent=.5, fs=48000):
 #     return out
 
 def downSample(x, new_rate):
+    if new_rate == 48000:
+        return x
     interp = scipy.interpolate.CubicSpline(np.arange(0, len(x)), x,bc_type='natural')
     curr_rate = 48000
     sample_steps = curr_rate / new_rate
@@ -286,4 +285,13 @@ def downSample(x, new_rate):
         elif i == int(i):
             out[ind] = x[int(i)]
     return out
+
+def quantize_dither(x, bit_depth):
+    sample_max = 2**(bit_depth-1)-1
+    y_quantized = np.floor(x*sample_max)
+    y_quantized = y_quantized[:int(len(y_quantized)/2)]
+    # for i in range(len(y_quantized)):
+    #     noise = random.triangular(-1, 1)
+    #     y_quantized[i] = y_quantized[i] + noise
+    return y_quantized / np.max(y_quantized)
 
