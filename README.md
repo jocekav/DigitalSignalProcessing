@@ -1,6 +1,6 @@
 # DigitalSignalProcessing
 
-DSP Final Project
+DSP Final Project Instructions (from final_project_readme.txt in the final project folder)
 
 Davis House and Jocelyn Kavanagh
 
