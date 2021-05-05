@@ -39,12 +39,14 @@ Command Line Examples:
 MIDI info prompts: 
     - 'saltarello2.mid' with tempo of 600
     - 'Saw.mid' with a tempo of 140
-    - 'scale.mid' with a tempo of 4000
+    - 'scale.mid' with a tempo of 4000 (use this especially if you are doing wavetable)
 Generation prompts:
     - type 'add' for additive synthesis
         - choose any type of oscillator by typing 'sine' for sine, 'saw' for saw, 'square' for square, and 'triangle' for triangle
         - choose any range of harmonics to be added as an int, eg. 1, 2, 3, 7, 10
             - the more harmonics the slower it runs
+    - type 'wav' for wavetable synthesis
+        - choose any type of oscillator by typing 'sine' for sine, 'saw' for saw, 'square' for square, and 'triangle' for triangle
     - ADSR
         - type a decimal between 0-1 for the percentage of the attack, decay, release and type the sustain amplitude level
             - .25 for attack, .25 for decay, .8 for sustain, .25 for release

@@ -93,28 +93,28 @@ def main():
         wave_valid = False
         while (not wave_valid):
             if wave_type == 'sine':
-                wave_valid = True;
+                wave_valid = True
                 play_list = np.array([])
                 for i in midi_info:
                     note_sine = synth_helpers.additive('sine', i[0], i[2], num_harmonics, i[1])
                     note_sine = synth_helpers.adsr(note_sine, attack, decay, sustain, release)
                     play_list = np.concatenate((play_list, note_sine))
             elif wave_type == 'saw':
-                wave_valid = True;
+                wave_valid = True
                 play_list = np.array([])
                 for i in midi_info:
                     note_sine = synth_helpers.additive('saw', i[0], i[2], num_harmonics, i[1])
                     note_sine = synth_helpers.adsr(note_sine, attack, decay, sustain, release)
                     play_list = np.concatenate((play_list, note_sine))
             elif wave_type == 'square':
-                wave_valid = True;
+                wave_valid = True
                 play_list = np.array([])
                 for i in midi_info:
                     note_sine = synth_helpers.additive('square', i[0], i[2], num_harmonics, i[1])
                     note_sine = synth_helpers.adsr(note_sine, attack, decay, sustain, release)
                     play_list = np.concatenate((play_list, note_sine))
             elif wave_type == 'triangle':
-                wave_valid = True;
+                wave_valid = True
                 play_list = np.array([])
                 for i in midi_info:
                     note_sine = synth_helpers.additive('triangle', i[0], i[2], num_harmonics, i[1])
@@ -137,24 +137,28 @@ def main():
         wave_valid = False
         while not wave_valid:
             if wave_type == 'sine':
+                wave_valid = True
                 play_list = np.array([])
                 for i in midi_info:
                     note_sine = synth_helpers.wavetable(i[0], i[2], i[1], 'sine')
                     note_sine = synth_helpers.adsr(note_sine, attack, decay, sustain, release)
                     play_list = np.concatenate((play_list, note_sine))
             elif wave_type == 'saw':
+                wave_valid = True
                 play_list = np.array([])
                 for i in midi_info:
                     note_sine = synth_helpers.wavetable(i[0], i[2], i[1], 'saw')
                     note_sine = synth_helpers.adsr(note_sine, attack, decay, sustain, release)
                     play_list = np.concatenate((play_list, note_sine))
             elif wave_type == 'square':
+                wave_valid = True
                 play_list = np.array([])
                 for i in midi_info:
                     note_sine = synth_helpers.wavetable(i[0], i[2], i[1], 'square')
                     note_sine = synth_helpers.adsr(note_sine, attack, decay, sustain, release)
                     play_list = np.concatenate((play_list, note_sine))
             elif wave_type == 'triangle':
+                wave_valid = True
                 play_list = np.array([])
                 for i in midi_info:
                     note_sine = synth_helpers.wavetable(i[0], i[2], i[1], 'triangle')
