@@ -6,6 +6,12 @@ Required libraries/modules
 - NumPy
 - SciPy
 
+How to run:
+- Run synth.py 
+    - Follow CLI input instructions
+    - Reference list below for any parameter confusion
+- Use 'saltarello2.mid' with a tempo of 600 and additive synth for smooth/quick demo purposes
+
 Synth Engines
 - Additive Synth (control number of harmonics)
 - Wavetable (control type of wave form)
