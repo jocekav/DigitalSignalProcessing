@@ -37,13 +37,10 @@ def parse_MIDI(midi_file, user_tempo):
     mid = mido.MidiFile(midi_file, clip=True)
     for i in range(0, len(mid.tracks)):
         for m in mid.tracks[i][:]:
-            # print(m)
             m = str(m)
             if 'clocks_per_click' in m:
-                # midi.append(m)
                 temp = m.partition("clocks_per_click=")[2]
                 clocks_per_click = temp.partition(" ")[0]
-                #sec_per_click = convert_clocks_per_click(int(clocks_per_click), user_tempo)
             if 'note_on' in m:
                 curr_message = 'note_on'
                 if curr_message != prev_message:
@@ -55,56 +52,25 @@ def parse_MIDI(midi_file, user_tempo):
                     note_velocity = temp.partition(" ")[0]
                     #convert to 0-1 amplitude
                     note_velocity = convert_velocity(int(note_velocity))
-                    
                     # rests
-                
                     note_dur = m.partition("time=")[2]
                     #convert to seconds
-                    #note_dur = sec_per_click * int(note_dur)
                     note_dur = mido.tick2second(int(note_dur), int(clocks_per_click), mido.bpm2tempo(user_tempo))
                     if note_dur > 0:
                         midi_info.append((440, 0, note_dur))
-                    #print(midi_info)
+
 
             if 'note_off' in m:
                 curr_message = 'note_off'
                 if curr_message != prev_message:
                     note_dur = m.partition("time=")[2]
-                    #convert to seconds
-                    #note_dur = sec_per_click * int(note_dur)
                     note_dur = mido.tick2second(int(note_dur), int(clocks_per_click), mido.bpm2tempo(user_tempo))
                     if note_dur > 0:
                         midi_info.append((note_value, note_velocity, note_dur))
-                    #print(midi_info)
 
             prev_message = curr_message
     return midi_info
 
-# def init():
-#     sample_rate = 48000
-#     t = np.arange(0,128/sample_rate,1/sample_rate)
-#     freq = 375
-#     sine_wavetable = np.sin(2 * np.pi * freq * t)
-#     saw_wavetable = scipy.signal.sawtooth(2 * np.pi * freq * t)
-#     square_wavetable = scipy.signal.square(2 * np.pi * freq * t)
-#     tri_wavetable = scipy.signal.sawtooth(2 * np.pi * freq * t, width=0.5)
-
-
-
-# def main():
-#     # init()
-#     note_list = parse_MIDI('Saw.mid', 8)
-#     play_list = np.array([])
-#     for i in note_list:
-#         note_sine = synth_helpers.genSine(i[0], i[2], i[1])
-#         #note_sine = wavetable(i[0], i[2], i[1])
-#         note_sine = synth_helpers.adsr(note_sine)
-#         play_list = np.concatenate((play_list, note_sine))
-#         # play_list = lfo(play_list, 2)
-#         # play_list = lowpass(play_list, cutoff=440)
-#         # play_list = flanger(play_list, .004, 0.11, 0.57)
-#         # play_list = wahwah(play_list)
-#     print(play_list)
 
 def main():
     midi_input = input("Please input MIDI file path: ")

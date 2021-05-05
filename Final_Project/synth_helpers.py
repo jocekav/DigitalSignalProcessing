@@ -139,23 +139,20 @@ def wavetable(frequency, dur, amp, type='sine', fs=48000):
 
     interp = scipy.interpolate.CubicSpline(np.arange(0, len(wave)), wave,bc_type='natural')
 
-    # plt.plot(t, wave)
+
     wave = wave / max(wave)
     # frequency to step size
     step = (round(frequency) * 128) / fs
     # time to desired sample length (array length)
     length = dur * fs
     ind_arr = np.arange(0, step * length, step)
-    # ind_arr = np.linspace(0, step * length, length)
+
     out = np.array([])
     #read table
     for i in ind_arr:
         i = i % 128
         if i != int(i):
-            # floored = int(i)
-            # next = floored + 1
-            # decimal = i - floored
-            # out = np.append(out, wave[floored] + decimal * (wave[next] - wave[floored]))
+
             out = np.append(out, interp(i))
         elif i == int(i):
             out = np.append(out, wave[int(i)])
@@ -255,20 +252,6 @@ def flanger(x, delay_time, rate, feedback_percent, blend, fs=48000):
     out = ((1 - blend) * x) + (blend * x_zero)
     return out
 
-# def downSample(x, new_rate):
-#     interp = scipy.interpolate.CubicSpline(np.arange(0, len(x)), x,bc_type='natural')
-#     curr_rate = 48000
-#     sample_steps = curr_rate / new_rate
-#     ind_arr = np.arange(0, len(x), sample_steps)
-#     out = np.arr
-#     out = np.array([])
-#     #read table
-#     for i in ind_arr:
-#         if i != int(i):
-#             out = np.append(out, interp(i))
-#         elif i == int(i):
-#             out = np.append(out, x[int(i)])
-#     return out
 
 def downSample(x, new_rate):
     if new_rate == 48000:
